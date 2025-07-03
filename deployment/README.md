@@ -1,30 +1,52 @@
 # 📊 Microservicio de Estadísticas - Muebles SAS
-Este microservicio permite recibir estadísticas de interacción de usuarios, validar su integridad mediante hash MD5, 
-almacenarlas en DynamoDB y publicar eventos en RabbitMQ, utilizando una arquitectura basada en el scaffold Clean Architecture de Bancolombia y tecnología reactiva con Spring WebFlux.
-
-## 📁 Estructura del Proyecto
-* Model: Entidades del dominio y gateways.
-* Use Case: Lógica de negocio.
-* Entry Points: Handler y rutas HTTP (WebFlux).
-* Driven Adapters: Integración con DynamoDB y RabbitMQ.
-* Docker Compose: Servicios para pruebas locales.
-
-## 🚀 Tecnologías
-* Java 17
-* Spring WebFlux
-* RabbitMQ
-* DynamoDB Local
-* Clean Architecture Scaffold de Bancolombia
-* Lombok
-* Reactor
-* Docker / Docker Compose
-* JUnit 5, Mockito
-* Jacoco
-
-## 🧪 Endpoint
+Este microservicio recibe estadísticas de interacción con usuarios, valida un hash MD5, guarda los datos en **DynamoDB** y 
+publica eventos en **RabbitMQ**, usando Clean Arquitecture Scaffol de bancolombia y desarrollo reactivo con **Spring WebFlux**.
+---
+## ⚙️ Tecnologías
+- Java 17
+- Gradle 8.9
+- Spring Boot + WebFlux
+- Clean Architecture (Bancolombia Scaffold v3.23.1)
+- Lombok
+- DynamoDB (local)
+- RabbitMQ
+- Docker Compose
+- JUnit 5 + Mockito + Jacoco
+---
+## 🚀 Instrucciones para ejecución
+### 🔧 Requisitos previos
+- Docker y Docker Compose
+- Java 17+
+- Gradle 8.9+
+- AWS CLI (opcional para testeo de DynamoDB local)
+---
+### 🐳 Levantar entorno con Docker
+```bash
+docker-compose up -d
+```
+* Esto levantará:
+DynamoDB Local en localhost:8000
+RabbitMQ en localhost:5672 (UI en localhost:15672)
+## 📦 Crear tabla DynamoDB (una vez)
+```bash
+aws dynamodb create-table \
+--table-name stats_table \
+--attribute-definitions AttributeName=timestamp,AttributeType=S \
+--key-schema AttributeName=timestamp,KeyType=HASH \
+--provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 \
+--endpoint-url http://localhost:8000
+```
+## ▶️ Ejecutar el servicio
+```bash
+./gradlew bootRun
+```
+El servicio quedará disponible en: http://localhost:8080
+## 🧪 Probar el endpoint
+### ➕ POST /stats
 POST /stats
+Content-Type: application/json
+#### 🧾 Cuerpo del request:
 ```json
-Request Body:
 {
 "totalContactoClientes": 250,
 "motivoReclamo": 25,
@@ -36,79 +58,32 @@ Request Body:
 "hash": "02946f262f2eb0d8d5c8e76c50433ed8"
 }
 ```
-
-### Reglas de validación del hash:
-Debe ser el MD5 de la cadena concatenada: "250,25,10,100,100,7,8"
-
-## ⚙️ Cómo ejecutar el servicio
-1. Clona el repositorio
-   git clone https://github.com/tu-usuario/microservicio-stats.git
-   cd microservicio-stats
-
-2. Levanta el entorno local con Docker Compose
-   docker-compose up -d
-
-* Esto inicia:
-DynamoDB Local (http://localhost:8000)
-RabbitMQ (http://localhost:15672 / guest:guest)
-
-3. Ejecuta la aplicación
-   Desde la raíz del proyecto:
-./gradle clean install
-./gradle spring-boot:run
-
-* O bien ejecuta directamente desde tu IDE (módulo app-service).
-
-## 🧪 Cómo probar el endpoint
-✅ Con curl:
-```bash
-curl -X POST http://localhost:8080/stats \
--H "Content-Type: application/json" \
--d '{
-"totalContactoClientes": 250,
-"motivoReclamo": 25,
-"motivoGarantia": 10,
-"motivoDuda": 100,
-"motivoCompra": 100,
-"motivoFelicitaciones": 7,
-"motivoCambio": 8,
-"hash": "02946f262f2eb0d8d5c8e76c50433ed8"
-}'
-```
-* ✅ Con Postman o Insomnia:
-Método: POST
-URL: http://localhost:8080/stats
-Body: JSON (como arriba)
-
+### ✅ Respuesta esperada:
+200 OK si el hash es válido (se guarda y se publica).
+400 Bad Request si el hash no coincide con los campos.
 ## 🧪 Ejecutar pruebas
 ```bash
-./gradle test
+./gradlew test
 ```
-Esto ejecuta las pruebas unitarias y de integración.
-
-Ver reporte de cobertura:
+## 📈 Ver cobertura de pruebas
 ```bash
-./gradle verify
+./gradlew jacocoTestReport
 ```
-El reporte estará en:
-```bash
-target/site/jacoco/index.html
+## 📂 Estructura del proyecto
+```scss
+.
+├── domain
+│   ├── model (entidades)
+│   └── usecase (interfaces de lógica, implementaciones)
+├── infrastructure
+│   ├── driven-adapters
+│   │   ├── dynamodb
+│   │   └── rabbitmq
+│   └── entry-points
+│       └── reactive-web
+├── docker-compose.yml
+└── README.md
 ```
-
-## 📚 Arquitectura
-Este proyecto sigue el patrón Clean Architecture:
-```bash
-domain/
-└── model/
-└── usecase/
-infrastructure/
-├── entry-points/       --> WebFlux
-└── driven-adapters/    --> DynamoDB, RabbitMQ
-```
-## 📌 Notas
-Asegúrate de que los puertos 8000, 5672, 15672 y 8080 estén libres.
-La cola event.stats.validated debe existir en RabbitMQ o se creará automáticamente.
-
 ## 📬 Contacto
 * Autor: [jgquinta-Jose Guillermo Quintanilla Paredes]
 * Correo: [jgquinta@bancolombia.com.co]
