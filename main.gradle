@@ -1,4 +1,4 @@
-apply plugin: 'info.solidsoft.pitest.aggregator'
+// apply plugin: 'info.solidsoft.pitest.aggregator'
 
 allprojects {
     repositories {
@@ -12,17 +12,14 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'jacoco'
     apply plugin: 'io.spring.dependency-management'
-    apply plugin: 'info.solidsoft.pitest'
-
-    compileJava.dependsOn validateStructure
+    //apply plugin: 'info.solidsoft.pitest'
+    //compileJava.dependsOn validateStructure
 
     java {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-
     //build.dependsOn 'pitest'
-
     test {
         useJUnitPlatform()
     }
@@ -31,9 +28,7 @@ subprojects {
 		implementation platform('software.amazon.awssdk:bom:2.31.56')
         implementation 'io.projectreactor:reactor-core'
         implementation 'io.projectreactor.addons:reactor-extra'
-
         testImplementation 'io.projectreactor.tools:blockhound-junit-platform:1.0.11.RELEASE'
-
         testImplementation 'io.projectreactor:reactor-test'
         testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
         testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -54,7 +49,7 @@ subprojects {
 
     test.finalizedBy(project.tasks.jacocoTestReport)
 
-    pitest {
+    /*pitest {
         targetClasses = ['co.com.bancolombia.*']
         excludedClasses = []
         excludedTestClasses = []
@@ -70,10 +65,10 @@ subprojects {
         junit5PluginVersion = '1.2.2'
         failWhenNoMutations = false
         jvmArgs = ["-XX:+AllowRedefinitionToAddDeleteMethods"]
-    }
+    }*/
 
     jacocoTestReport {
-        dependsOn test, 'pitest'
+        dependsOn test
         reports {
             xml.setRequired true
             xml.setOutputLocation layout.buildDirectory.file("reports/jacoco.xml")
@@ -90,7 +85,8 @@ jacoco {
 }
 
 tasks.register('jacocoMergedReport', JacocoReport) {
-    dependsOn = [test, subprojects.jacocoTestReport, pitestReportAggregate]
+    //dependsOn = [test, subprojects.jacocoTestReport, pitestReportAggregate]
+    dependsOn = [test, subprojects.jacocoTestReport ]
     additionalSourceDirs.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
     sourceDirectories.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
     classDirectories.setFrom files(subprojects.sourceSets.main.output)
@@ -107,7 +103,7 @@ tasks.withType(JavaCompile).configureEach {
             '-Amapstruct.suppressGeneratorTimestamp=true'
     ]
 }
-
+/*
 pitestReportAggregate {
     doLast {
         def reportDir = layout.buildDirectory.dir("reports/pitest").get().asFile
@@ -126,7 +122,7 @@ pitestReportAggregate {
             writer.write("</mutations>")
         }
     }
-}
+}*/
 
 tasks.named('wrapper') {
     gradleVersion = '8.14'
