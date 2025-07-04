@@ -15,8 +15,6 @@ import java.util.concurrent.CompletableFuture;
 @Component
 @RequiredArgsConstructor
 public class StatsRepositoryAdapter implements StatsRepository {
-
-    @Autowired
     private final DynamoDbAsyncClient dynamoDbAsyncClient;
 
     @Override
